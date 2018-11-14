@@ -10,4 +10,4 @@ Para abrir el proyecto:
   - Python 3:
     * En caso de MacOS "python -m http.server [puerto]"
     * En caso de Windows "py -m http.server [puerto]"
-* abrir un navegador y en la barra de busquedas colocar localhost:8000
+* abrir un navegador y en la barra de busquedas colocar localhost:[puerto]
