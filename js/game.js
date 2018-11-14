@@ -3,19 +3,20 @@ var game = new Phaser.Game(448, 496, Phaser.AUTO, "game");
 var PacmanGame = function (game) {
     this.map = null;
     this.layer = null;
-
+    this.timerespaw = 4;
+    this.umbralExit = 5;
     this.score = 0;
     this.scoreText = null;
 
-    this.enemies = 0;
-    this.currentGhost = 2;
     this.pacman = null;
+    this.currentGhost = 2;
     this.ghost = null;
     this.ghosts = [];
+    this.enemies = 0;
 
     this.safetile = 14;
     this.gridsize = 16;
-    this.threshold = 3;
+    this.threshold=3;
 
     this.SPAWN_TILES = [{
         x: 13,
@@ -77,7 +78,7 @@ var PacmanGame = function (game) {
 
     this.TIME_MODES = [{
         mode: "scatter",
-        time: 7000
+        time: 2000
     }, {
         mode: "chase",
         time: 20000
@@ -92,7 +93,7 @@ var PacmanGame = function (game) {
         time: 5000
     }, {
         mode: "chase",
-        time: 20000
+        time: 10000
     }, {
         mode: "scatter",
         time: 5000
@@ -111,6 +112,7 @@ var PacmanGame = function (game) {
     this.ghostThreshold = 5;
 
     this.game = game;
+    this.KEY_COOLING_DOWN_TIME = 250;
 };
 
 PacmanGame.prototype = {
@@ -141,8 +143,10 @@ PacmanGame.prototype = {
 
         this.layer = this.map.createLayer('Pacman');
 
+
         this.pills = this.add.physicsGroup();
         this.numPills = this.map.createFromTiles(40, this.safetile, "pill", this.layer, this.pills);
+
 
         //  El jugador tiene colisión con todo excepto
         this.map.setCollisionByExclusion([this.safetile], true, this.layer);
@@ -152,11 +156,11 @@ PacmanGame.prototype = {
 
         this.cursors = this.input.keyboard.createCursorKeys();
 
-        this.changeModeTimer = this.time.time + this.TIME_MODES[this.currentMode].time;
+        this.changemodeTimer = this.time.time + this.TIME_MODES[this.currentMode].time;
 
         // Enemigos
         this.enemies = Math.floor(Math.random() * (8 - 4 + 1) + 4);
-
+        this.changeModeTimer = this.time.time + this.TIME_MODES[this.currentMode].time;
         for (let index = 0; index < this.enemies; index++) {
             this.ghost = new Ghost(this, "ghosts", index, {
                 x: this.SPAWN_TILES[index].x,
@@ -167,6 +171,9 @@ PacmanGame.prototype = {
         }
 
         this.sendExitOrder(this.ghosts[1]);
+
+
+
     },
 
     checkMouse: function () {
@@ -196,14 +203,14 @@ PacmanGame.prototype = {
     },
 
     update: function () {
-
+        console.log(this.currentMode);
         if (!this.pacman.isDead) {
+ 
             for (var i = 0; i < this.ghosts.length; i++) {
                 if (this.ghosts[i].mode !== this.ghosts[i].RETURNING_HOME) {
                     this.physics.arcade.overlap(this.pacman.sprite, this.ghosts[i].ghost, this.dogEatsDog, null, this);
                 }
             }
-
             if (this.game.time.totalElapsedSeconds() > this.ghostExitRate &&
                 this.game.time.totalElapsedSeconds() < this.ghostThreshold &&
                 this.currentGhost < this.enemies) {
@@ -225,7 +232,10 @@ PacmanGame.prototype = {
                 }
                 console.log("new mode:", this.TIME_MODES[this.currentMode].mode, this.TIME_MODES[this.currentMode].time);
             }
+
+
             if (this.isPaused && this.changeModeTimer < this.time.time) {
+                console.log("lol");
                 this.changeModeTimer = this.time.time + this.remainingTime;
                 this.isPaused = false;
                 if (this.TIME_MODES[this.currentMode].mode === "chase") {
@@ -260,16 +270,13 @@ PacmanGame.prototype = {
             this.killPacman();
         }
     },
-
     gimeMeExitOrder: function (ghost) {
         this.game.time.events.add(Math.random() * 3000, this.sendExitOrder, this, ghost);
     },
-
     killPacman: function () {
         this.pacman.isDead = true;
         this.stopGhosts();
     },
-
     stopGhosts: function () {
         for (var i = 0; i < this.ghosts.length; i++) {
             this.ghosts[i].mode = this.ghosts[i].STOP;
