@@ -132,7 +132,6 @@ Pacman.prototype.checkKeys = function (cursors) {
 Pacman.prototype.eatPill = function (pacman, pill) {
     pill.kill();
 
-    this.game.score++;
     this.game.numPills--;
 
      this.game.enterFrightenedMode();

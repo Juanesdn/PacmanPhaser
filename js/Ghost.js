@@ -158,6 +158,42 @@ Ghost.prototype = {
                         this.turnTimer = this.game.time.time + this.TURNING_COOLDOWN;
                     }
                     break;
+                case this.RETURNING_HOME:
+                    if (this.turnTimer < this.game.time.time) {
+                        this.ghost.body.reset(this.ghost.x, this.ghost.y);
+                        if (this.flag = this.flag ? false : true) {
+                            this.ghost.body.velocity.x = 0;
+                            if (this.ghost.y < 14 * this.gridsize) {
+                                this.ghost.body.velocity.y = this.cruiseElroySpeed;
+                                this.ghost.animations.play(23);
+                            }
+                            if (this.ghost.y > 15 * this.gridsize) {
+                                this.ghost.body.velocity.y = -this.cruiseElroySpeed;
+                                this.ghost.animations.play(22);
+                            }
+                        } else {
+                            this.ghost.body.velocity.y = 0;
+                            if (this.ghost.x < 13 * this.gridsize) {
+                                this.ghost.body.velocity.x = this.cruiseElroySpeed;
+                                this.ghost.animations.play(20);
+                            }
+                            if (this.ghost.x > 16 * this.gridsize) {
+                                this.ghost.body.velocity.x = -this.cruiseElroySpeed;
+                                this.ghost.animations.play(21);
+                            }
+                        }
+                        this.turnTimer = this.game.time.time + this.RETURNING_COOLDOWN;
+                    }
+                    if (this.hasReachedHome()) {
+                        this.turnPoint.x = (x * this.gridsize) + (this.gridsize / 2);
+                        this.turnPoint.y = (y * this.gridsize) + (this.gridsize / 2);
+                        this.ghost.x = this.turnPoint.x;
+                        this.ghost.y = this.turnPoint.y;
+                        this.ghost.body.reset(this.turnPoint.x, this.turnPoint.y);
+                        this.mode = this.AT_HOME;
+                        this.game.gimeMeExitOrder(this);
+                    }
+                    break;
 
                 case this.CHASE:
                     if (this.turnTimer < this.game.time.time) {
@@ -193,9 +229,9 @@ Ghost.prototype = {
                         }
 
                         if (this.game.isSpecialTile({
-                            x: x,
-                            y: y
-                        }) && bestDecision === Phaser.UP) {
+                                x: x,
+                                y: y
+                            }) && bestDecision === Phaser.UP) {
                             bestDecision = this.currentDir;
                         }
 
@@ -240,6 +276,7 @@ Ghost.prototype = {
                         this.ghost.y = this.turnPoint.y;
                         this.ghost.body.reset(this.turnPoint.x, this.turnPoint.y);
                         this.move(Phaser.UP);
+                        console.log('!');
                     } else if (this.currentDir === Phaser.UP && y == 12) {
                         this.turnPoint.x = (x * this.gridsize) + (this.gridsize / 2);
                         this.turnPoint.y = (y * this.gridsize) + (this.gridsize / 2);
@@ -248,6 +285,7 @@ Ghost.prototype = {
                         this.ghost.body.reset(this.turnPoint.x, this.turnPoint.y);
                         this.safetiles = [this.game.safetile];
                         this.mode = this.game.getCurrentMode();
+                        console.log('!!');
                         return;
                     } else if (!canContinue) {
                         this.turnPoint.x = (x * this.gridsize) + (this.gridsize / 2);
@@ -257,6 +295,7 @@ Ghost.prototype = {
                         this.ghost.body.reset(this.turnPoint.x, this.turnPoint.y);
                         var dir = (this.currentDir === Phaser.LEFT) ? Phaser.RIGHT : Phaser.LEFT;
                         this.move(dir);
+                        console.log('!!!');
                     }
                     break;
 
@@ -354,13 +393,9 @@ Ghost.prototype = {
         }
     },
 
-
-
     resetSafeTiles: function () {
         this.safetiles = [this.game.safetile, 35, 36];
     },
-
-
 
     scatter: function () {
         if (this.mode !== this.RETURNING_HOME) {
